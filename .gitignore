@@ -1,0 +1,17 @@
+# Java build output
+*.class
+out/
+bin/
+target/
+
+# Local credentials and editor files
+.env
+.env.*
+!.env.example
+.vscode/
+
+# Java dependencies are installed separately
+*.jar
+
+# Local backup copy of the stock project
+microProj/backup.txt

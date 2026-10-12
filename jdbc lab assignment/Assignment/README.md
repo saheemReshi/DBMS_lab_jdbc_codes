@@ -1,18 +1,19 @@
-## Getting Started
+# JDBC assignment: insert and report
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+This assignment contains three console programs using the `companydb` schema:
 
-## Folder Structure
+- `App.java` inserts an employee and a `works_on` row in one transaction. A nonpositive hours value rolls the transaction back.
+- `Demo.java` lists selected employee columns.
+- `Report.java` prints employees and their dependents.
 
-The workspace contains two folders by default, where:
+Load `LAB 11 - SQL DML-20250408/companydb.sql`, set `DB_URL`, `DB_USER`, and `DB_PASSWORD`, and add MySQL Connector/J to the Java classpath. For example, from this directory:
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+```sh
+export DB_URL='jdbc:mysql://localhost:3306/companydb'
+export DB_USER='your_mysql_user'
+export DB_PASSWORD='your_mysql_password'
+javac -cp '/path/to/mysql-connector-j.jar' -d out src/App.java src/Demo.java src/Report.java
+java -cp 'out:/path/to/mysql-connector-j.jar' Demo
+```
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+Run `App` only with valid sample values that satisfy the schema constraints. This is course code; use it to discuss transaction behavior, SQL parameterization, input validation, and resource cleanup.

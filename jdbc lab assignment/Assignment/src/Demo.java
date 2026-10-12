@@ -7,11 +7,11 @@ public class Demo {
 
    // Set JDBC driver name and database URL
    static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
-   static final String DB_URL = "jdbc:mysql://localhost:3306/companydb";
+   static final String DB_URL = System.getenv().getOrDefault("DB_URL", "jdbc:mysql://localhost:3306/companydb");
 
    // Database credentials
-   static final String USER = "root";// add your user
-   static final String PASSWORD = "naveedBoy";// add password
+   static final String USER = System.getenv("DB_USER");
+   static final String PASSWORD = System.getenv("DB_PASSWORD");
 
    public static void main(String[] args) {
       Connection conn = null;
@@ -33,6 +33,9 @@ public class Demo {
 
       // STEP 2. Connecting to the Database
       try {
+         if (USER == null || PASSWORD == null) {
+            throw new IllegalStateException("Set DB_USER and DB_PASSWORD before running this example.");
+         }
          // STEP 2a: Register JDBC driver
          Class.forName(JDBC_DRIVER);
          // STEP 2b: Open a connection
@@ -65,7 +68,7 @@ public class Demo {
          System.out.println(", department number: " + dno);
          }
 
-         
+
          // STEP 5: Clean-up environment
          rs.close();
          stmt.close();

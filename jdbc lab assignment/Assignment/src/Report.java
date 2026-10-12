@@ -4,16 +4,19 @@ import java.util.Scanner;
 
 public class Report {
     static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
-    static final String DB_URL = "jdbc:mysql://localhost:3306/companydb";
+    static final String DB_URL = System.getenv().getOrDefault("DB_URL", "jdbc:mysql://localhost:3306/companydb");
 
-    static final String USER = "root";// add your user
-   static final String PASSWORD = "naveedBoy";// add password
-    
+    static final String USER = System.getenv("DB_USER");
+    static final String PASSWORD = System.getenv("DB_PASSWORD");
+
     public static void main(String[] args) {
         Connection conn=null;
         Statement stmt=null;
         Scanner sc = new Scanner(System.in);
         try {
+            if (USER == null || PASSWORD == null) {
+                throw new IllegalStateException("Set DB_USER and DB_PASSWORD before running this example.");
+            }
             Class.forName(JDBC_DRIVER);
             System.out.println("Connecting to database...");
             conn = DriverManager.getConnection(DB_URL,USER, PASSWORD);
@@ -26,7 +29,7 @@ public class Report {
                 ssn.add(rs.getString("essn"));
             }
             int i=1;
-            for(String s : ssn){ 
+            for(String s : ssn){
                 query="select fname, lname from employee   where ssn='"+s+"'";
                 rs=stmt.executeQuery(query);
                 rs.next();
