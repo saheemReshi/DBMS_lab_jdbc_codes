@@ -1,3 +1,6 @@
+-- Run once on a new, empty companydb database. No existing tables are dropped.
+CREATE DATABASE IF NOT EXISTS companydb;
+USE companydb;
 
 create table employee(
 	ssn char(9),
@@ -38,7 +41,7 @@ create table project(
 create table works_on(
 	essn char(9),
 	pno smallint,
-	hours float(4,2),
+	hours DECIMAL(5,2),
 	constraint pk_works_on PRIMARY KEY (essn, pno)
 );
 

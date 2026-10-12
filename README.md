@@ -1,78 +1,89 @@
-# DBMS and JDBC teaching examples
+# Database programming examples with Java and MySQL
 
-This repository contains small Java and MySQL examples from a database systems course. They are intended for classroom discussion and practice. The programs are console applications; they are not web services or production backend systems.
+These examples come from a DBMS course project. They show how a console application connects to a relational database, reads rows, changes related tables, and controls transactions. Start with the basic query, then the company transaction example, then the store project.
 
-## Suggested teaching path
+## Examples and required schemas
 
-1. **Company database and SQL** — start with [`LAB 11 - SQL DML-20250408/companydb.sql`](<LAB 11 - SQL DML-20250408/companydb.sql>). It creates and populates a familiar employee, department, project, and dependent schema. Use it to discuss keys, foreign keys, joins, and sample queries.
-2. **Basic JDBC query** — use [`JDBC_Demo/Demo`](JDBC_Demo/Demo/README.md) to trace connection setup, query execution, and reading rows from a `ResultSet`.
-3. **JDBC writes and transactions** — review [`jdbc lab assignment/Assignment/src/App.java`](<jdbc lab assignment/Assignment/src/App.java>) for inserting an employee and a related `works_on` row as one transaction. [`Report.java`](<jdbc lab assignment/Assignment/src/Report.java>) demonstrates reading related data.
-4. **Store stock project** — see [`microProj/store_stock_management`](microProj/store_stock_management/README.md) for a larger schema and menu-driven example involving stock updates, purchase history, suppliers, and reorders.
+| Example | Java entry point | Complete setup script | Run command |
+| --- | --- | --- | --- |
+| [Basic JDBC query](examples/jdbc-basics/README.md) | `Demo` | [Company schema and sample data](schemas/company.sql) | `bash scripts/run.sh basics` |
+| [Employee/project transaction](examples/company-transactions/README.md) | `App` | [Company schema and sample data](schemas/company.sql) | `bash scripts/run.sh transactions` |
+| [Employee/dependent report](examples/company-transactions/README.md) | `Report` | [Company schema and sample data](schemas/company.sql) | `bash scripts/run.sh report` |
+| [Store stock management](examples/stock-management/README.md) | `StockManagementApp` | [Store schema and sample data](schemas/store.sql) | `bash scripts/run.sh stock` |
 
-## Requirements
+## Quick start (Linux / macOS)
 
-- Java (JDK 8 or newer)
-- MySQL Server
-- MySQL Connector/J
-- A MySQL account with permission to create and use the example databases
+Run the commands below in Bash from the repository root. Requirements are a JDK (Java 8 or newer), MySQL Server, the `mysql` command-line client, and a MySQL Connector/J JAR.
 
-The examples use Connector/J 8.0.32. Install it through your normal Java dependency workflow or provide its JAR on the classpath. Do not commit the driver JAR or compiled `.class` files.
-
-## Configure database access
-
-Set these environment variables in the shell before running an example:
+The original project used Connector/J 8.0.32. Obtain a Connector/J version compatible with your MySQL server, put the JAR on your machine, and set `JDBC_JAR` to its **absolute path**. Driver binaries are installed separately.
 
 ```sh
-export DB_URL='jdbc:mysql://localhost:3306/companydb'
+export JDBC_JAR='/absolute/path/to/mysql-connector-j.jar'
 export DB_USER='your_mysql_user'
-export DB_PASSWORD='your_mysql_password'
+read -r -s -p 'MySQL password: ' DB_PASSWORD
+echo
+export DB_PASSWORD
+unset DB_URL
 ```
 
-For the stock project, set `DB_URL` to `jdbc:mysql://localhost:3306/store_stock_management`. The checked-in example code reads these variables; it does not contain a usable database password. Use a dedicated local teaching account instead of a privileged account such as `root`.
+Use a local teaching account with access to the databases. For initial setup, that account must also be allowed to create databases/tables and add foreign keys (or run the imports using your database administrator account).
 
-## Example setup
+### Load the schemas
 
-Create the company database and load its schema/data:
-
-```sql
-CREATE DATABASE companydb;
-```
-
-Then, from a terminal, run:
+These scripts create their named database, all tables, foreign keys, and sample data. Run each script **once on a fresh database**. They do not drop existing tables; importing again into a populated database will fail rather than reset it. You only need the company script once for all three company programs.
 
 ```sh
-mysql -u your_mysql_user -p companydb < 'LAB 11 - SQL DML-20250408/companydb.sql'
+mysql -u "$DB_USER" -p < schemas/company.sql
+mysql -u "$DB_USER" -p < schemas/store.sql
 ```
 
-The stock project has its own schema in [`microProj/imt2023051_create.sql`](microProj/imt2023051_create.sql). Create the database first, then run that SQL file against it:
+The MySQL client prompts for its password independently of the Java environment variable. No other SQL files are required. If your MySQL server is on another host or port, also pass `-h` and `-P` to the import commands.
 
-```sql
-CREATE DATABASE store_stock_management;
-```
+### Run an example
 
 ```sh
-mysql -u your_mysql_user -p store_stock_management < microProj/imt2023051_create.sql
+bash scripts/run.sh basics
+bash scripts/run.sh report
+bash scripts/run.sh transactions
+bash scripts/run.sh stock
 ```
 
-Compile and run a Java example from its project directory with Connector/J on the classpath. For example, on Linux:
+Each app defaults to its correct database on `localhost:3306`. Leave `DB_URL` unset to use those defaults. For a different host/port, set it explicitly to `jdbc:mysql://HOST:PORT/companydb` or `jdbc:mysql://HOST:PORT/store_stock_management` as appropriate. An exported URL overrides the default for every app.
+
+The launcher compiles each example into a separate directory under `out/`, then runs its main class with the JDBC driver on the classpath. It does not create or reset databases.
+
+### Manual compilation (including Windows)
+
+You can also compile and run directly; no build tool or IDE is required. For example:
 
 ```sh
-javac -cp '/path/to/mysql-connector-j.jar' -d out src/Demo.java
-java -cp 'out:/path/to/mysql-connector-j.jar' Demo
+mkdir -p out/jdbc-basics
+javac -d out/jdbc-basics examples/jdbc-basics/src/Demo.java
+java -cp "out/jdbc-basics:$JDBC_JAR" Demo
 ```
 
-The classpath separator is `:` on Linux and macOS and `;` on Windows. The stock source file is under `microProj/store_stock_management/src`.
+On Windows, use `;` as the classpath separator, replace `$JDBC_JAR` with the actual JAR path, and set the database environment variables in your shell. See each example's README for its source files and main class.
 
-## Discussion notes
+## What is included
 
-These are student exercises and preserve a few rough edges that are useful to review. In particular, discuss why parameterized `PreparedStatement`s are preferred to building SQL strings from input, why every `ResultSet` and statement should be closed, how rollback should work when any part of a multi-table operation fails, and how database constraints protect data. The stock app currently uses SQL string construction in several operations and has inconsistent transaction handling; treat those as review exercises, not recommended patterns.
+```text
+examples/
+  jdbc-basics/           # Connection, SELECT, ResultSet
+  company-transactions/ # Prepared INSERTs, commit/rollback, reports
+  stock-management/     # Suppliers, products, purchases, reorders
+schemas/
+  company.sql           # Six related tables and sample data
+  store.sql             # Four related tables, foreign keys and sample data
+scripts/run.sh          # Compile and run any example
+docs/                   # Original course notes and assignment PDFs
+```
 
-The project includes compiled files and driver archives in older commits. Current source files should be used for lessons. A password was also present in an earlier commit; removing it from the current files does not erase it from Git history. If it was a real or reused credential, rotate it before sharing the repository and consider sharing a cleaned export instead of the full history.
+The [course notes](docs/README.md) provide the original assignment context. The repository uses one canonical copy of each schema/source example so setup commands and teaching material stay together.
 
-## Repository contents
+## Teaching notes and limitations
 
-- `LAB 11 - SQL DML-20250408/` — company database setup and course SQL material.
-- `JDBC_Demo/` — introductory JDBC query examples and accompanying notes.
-- `jdbc lab assignment/` — assignment source for inserts, transactions, and reports.
-- `microProj/` — store stock management mini project and schema (local working copy).
-- `Lab 09 - Database Design - PART B-20250325/` and `Lab 10 - SQL DDL-20250325/` — additional course exercises.
+The transaction example uses `PreparedStatement` parameters for console input and rolls back when a step fails. Trace the employee insert and `works_on` insert together to explain atomicity: both changes persist, or both are undone. Its README includes inputs for both a commit and a rollback demonstration.
+
+The store app is original student coursework. Several operations still construct SQL strings from input, lack complete input validation/resource cleanup, and do not handle concurrent purchases safely. It assumes a reorder immediately increases available stock. Use these behaviors as code-review exercises before using it as a design reference.
+
+A password appeared in earlier Git commits. Current tutorial sources use environment variables, but Git history still contains the old value. Rotate it if it was real or reused.
